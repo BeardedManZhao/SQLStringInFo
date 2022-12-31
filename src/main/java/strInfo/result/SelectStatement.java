@@ -1,8 +1,6 @@
 package strInfo.result;
 
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * sql语句对象，其中包含的就是有关sql中的Select语句的参数信息。
@@ -19,8 +17,7 @@ public class SelectStatement extends Statement {
     public final static int GROUP_WORD = getWordNum("group", hashNum);
     public final static int ORDER_WORD = getWordNum("order", hashNum);
     public final static int LIMIT_WORD = getWordNum("limit", hashNum);
-    protected final static Pattern TABLE_SPLIT_PATTERN = Pattern.compile("(?:left|right)?(?:,| |join)\\s*");
-    protected final static Pattern OR_AND = Pattern.compile("\\s*(or|and)\\s*", Pattern.CASE_INSENSITIVE);
+
     private final ArrayList<SelectStatement> SubQueryList;
     private final String SQL;
     private final String selectStr;
@@ -73,6 +70,54 @@ public class SelectStatement extends Statement {
      */
     public static SelectStatementBuilder builder() {
         return new SelectStatementBuilder();
+    }
+
+    /**
+     * 获取到本次查询涉及到的所有表名组成的数组数据。
+     * <p>
+     * Get the array data composed of all table names involved in this query.
+     *
+     * @return 将tableName数据按照一定的格式进行分组，获取到包含所有表名的一个新数组。
+     * <p>
+     * Group tableName data in a certain format to obtain a new array containing all table names.
+     */
+    public String[] getTables() {
+        ArrayList<String> arrayList = new ArrayList<>();
+        String tableName = this.tableName;
+        StringBuilder backStr = new StringBuilder();
+        for (int i = 0, length = tableName.length(); i < length; i++) {
+            char c = tableName.charAt(i);
+            if (c != ' ' && c != ',') {
+                backStr.append(c);
+            } else {
+                int length1 = backStr.length();
+                if (length1 == 5) {
+                    String s1 = backStr.toString();
+                    if (s1.equalsIgnoreCase("right") || s1.equalsIgnoreCase("inner") || s1.equalsIgnoreCase("cross")) {
+                        backStr.delete(0, 5);
+                    } else {
+                        arrayList.add(s1);
+                    }
+                } else if (length1 == 4) {
+                    String s1 = backStr.toString();
+                    if ("join".equalsIgnoreCase(s1) || "left".equalsIgnoreCase(s1) || "full".equalsIgnoreCase(s1)) {
+                        backStr.delete(0, 4);
+                    } else {
+                        arrayList.add(s1);
+                    }
+                } else {
+                    int length2 = backStr.length();
+                    if (length2 != 0) {
+                        arrayList.add(backStr.toString());
+                        backStr.delete(0, length2);
+                    }
+                }
+            }
+        }
+        if (backStr.length() != 0) {
+            arrayList.add(backStr.toString());
+        }
+        return arrayList.toArray(new String[0]);
     }
 
     /**
@@ -142,7 +187,7 @@ public class SelectStatement extends Statement {
         if (wordNum == SELECT_WORD) {
             return this.fieldNames;
         } else if (wordNum == FROM_WORD) {
-            return this.tableName == null ? new String[0] : TABLE_SPLIT_PATTERN.split(this.tableName);
+            return this.tableName == null ? new String[0] : getTables();
         } else if (wordNum == WHERE_WORD) {
             return this.whereStr == null ? new String[0] : getWhereArray();
         } else if (wordNum == GROUP_WORD) {
@@ -161,15 +206,28 @@ public class SelectStatement extends Statement {
      * @return where子句的条件数组。
      */
     public String[] getWhereArray() {
-        Matcher matcher = OR_AND.matcher(this.whereStr);
-        int index = 0;
         ArrayList<String> arrayList = new ArrayList<>();
-        while (matcher.find()) {
-            arrayList.add(this.whereStr.substring(index, matcher.start()));
-            arrayList.add(matcher.group(1));
-            index = matcher.end();
+        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder backStr = new StringBuilder();
+        for (int i = 0, length = this.whereStr.length(); i < length; i++) {
+            char c = this.whereStr.charAt(i);
+            if (c != ' ') {
+                stringBuilder.append(c);
+            } else {
+                String s = stringBuilder.toString();
+                int length1 = s.length();
+                if ("or".equalsIgnoreCase(s) || "and".equalsIgnoreCase(s)) {
+                    arrayList.add(backStr.toString());
+                    arrayList.add(s);
+                } else {
+                    backStr.append(c).append(stringBuilder);
+                }
+                stringBuilder.delete(0, length1);
+            }
         }
-        arrayList.add(this.whereStr.substring(index));
+        if (backStr.length() != 0) {
+            arrayList.add(backStr.toString());
+        }
         return arrayList.toArray(new String[0]);
     }
 
@@ -191,6 +249,7 @@ public class SelectStatement extends Statement {
      * @return 一个以当前语句对象为中心，与其它类合并之后的新语句对象
      */
     public SelectStatement merge(SelectStatement selectStatement) {
+        if (selectStatement == null) return this;
         String selectStr = null;
         String whereStr = null;
         String groupStr = null;

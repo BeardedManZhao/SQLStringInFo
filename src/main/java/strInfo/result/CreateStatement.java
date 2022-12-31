@@ -8,7 +8,7 @@ package strInfo.result;
  * @author zhao
  */
 public class CreateStatement extends Statement {
-    public final static short hashNum = 4;
+    public final static short hashNum = 6;
     public final static int CREATE_WORD = getWordNum("create", hashNum);
     public final static int TABLE_WORD = getWordNum("table", hashNum);
     public final static int FIELD_WORD = getWordNum("field", hashNum);
@@ -16,6 +16,7 @@ public class CreateStatement extends Statement {
     public final static int LEFT_BRACKET_WORD = getWordNum("(", hashNum);
     public final static int RIGHT_BRACKET_WORD = getWordNum(")", hashNum);
     public final static int LIKE_WORD = getWordNum("like", hashNum);
+    public final static int AS_WORD = getWordNum("as", hashNum);
 
     private final String SQL;
     private final String createStr;
@@ -23,8 +24,9 @@ public class CreateStatement extends Statement {
     private final String optionsStr;
     private final boolean temporary;
     private final String likeStr;
+    private final SelectStatement selectStatement;
 
-    protected CreateStatement(String tableName, String sql, String createStr, String fieldStr, String optionsStr, boolean temporary, String likeStr) {
+    protected CreateStatement(String tableName, String sql, String createStr, String fieldStr, String optionsStr, boolean temporary, String likeStr, SelectStatement selectStatement) {
         super(tableName, fieldStr != null ? COMMA_PATTERN.split(fieldStr.trim()) : new String[0]);
         this.SQL = sql;
         this.createStr = createStr;
@@ -32,16 +34,18 @@ public class CreateStatement extends Statement {
         this.optionsStr = optionsStr;
         this.temporary = temporary;
         this.likeStr = likeStr;
+        this.selectStatement = selectStatement;
     }
 
 
-    protected CreateStatement(String tableName, String createStr, String fieldStr, String optionsStr, boolean temporary, String likeStr) {
+    protected CreateStatement(String tableName, String createStr, String fieldStr, String optionsStr, boolean temporary, String likeStr, SelectStatement selectStatement) {
         super(tableName, fieldStr == null ? new String[0] : COMMA_PATTERN.split(fieldStr.trim()));
         this.createStr = createStr;
         this.fieldStr = fieldStr;
         this.optionsStr = optionsStr;
         this.temporary = temporary;
         this.likeStr = likeStr;
+        this.selectStatement = selectStatement;
         StringBuilder stringBuilder = new StringBuilder(0b1000000);
         stringBuilder
                 .append("create ").append(createStr);
@@ -63,6 +67,7 @@ public class CreateStatement extends Statement {
     public static CreateStatementBuilder builder() {
         return new CreateStatementBuilder();
     }
+
 
     /**
      * 获取到解析词在sql语句中的编号数值，用于将解析词按照hash与阈值一起映射成为数值后，再进行解析词的匹配，这样的匹配性能会优秀很多，其中的编号数值阈值默认为当前语句对象的hashNum。
@@ -113,6 +118,8 @@ public class CreateStatement extends Statement {
             return this.optionsStr;
         } else if (wordNum == LIKE_WORD) {
             return this.likeStr;
+        } else if (wordNum == AS_WORD) {
+            return this.selectStatement.getSqlStr();
         }
         throw new IllegalStateException("Unexpected value: " + wordNum);
     }
@@ -136,35 +143,53 @@ public class CreateStatement extends Statement {
             return this.optionsStr == null ? new String[0] : SPACE_PATTERN.split(this.optionsStr);
         } else if (wordNum == LIKE_WORD) {
             return new String[]{this.likeStr};
+        } else if (wordNum == AS_WORD) {
+            return this.selectStatement == null ? new String[0] : SPACE_PATTERN.split(this.selectStatement.getSqlStr());
         }
         throw new IllegalStateException("Unexpected value: " + wordNum);
     }
 
     /**
+     * 如果在create语句中，引用了其它数据表的查询结果，那么该函数可以返回create语句的子查询语句对象。
+     * <p>
+     * If the query results of other data tables are referenced in the "create" statement, this function can return the sub query statement object of the "create" statement.
+     *
+     * @return create语句中的子查询语句对象，如果没有引用，这里返回null;
+     * <p>
+     * If there is no reference to the subQuery statement object in the "create" statement, null is returned here;
+     */
+    public SelectStatement getSelectStatement() {
+        return this.selectStatement;
+    }
+
+    /**
      * 以当前类为中心，将其它sql语句类中的数据合并到当前类中，并返回当前类的新副本，不会影响当前类的源数据
      *
-     * @param selectStatement 其它的sql语句类，也是另一方的数据来源
+     * @param createStatement 其它的sql语句类，也是另一方的数据来源
      * @return 一个以当前语句对象为中心，与其它类合并之后的新语句对象
      */
-    public CreateStatement merge(CreateStatement selectStatement) {
+    public CreateStatement merge(CreateStatement createStatement) {
+        if (createStatement == null) return this;
         String createStr = null;
         String fieldStr = null;
         String optionStr = null;
-        String limitStr = null;
-        if (this.createStr == null && selectStatement.createStr != null) {
-            createStr = selectStatement.createStr;
+        String likeStr = null;
+        if (this.createStr == null && createStatement.createStr != null) {
+            createStr = createStatement.createStr;
         }
-        if (this.fieldStr == null && selectStatement.fieldStr != null) {
-            fieldStr = selectStatement.fieldStr;
+        if (this.fieldStr == null && createStatement.fieldStr != null) {
+            fieldStr = createStatement.fieldStr;
         }
-        if (this.optionsStr == null && selectStatement.optionsStr != null) {
-            optionStr = selectStatement.optionsStr;
+        if (this.optionsStr == null && createStatement.optionsStr != null) {
+            optionStr = createStatement.optionsStr;
         }
-        if (this.likeStr == null && selectStatement.likeStr != null) {
-            limitStr = selectStatement.likeStr;
+        if (this.likeStr == null && createStatement.likeStr != null) {
+            likeStr = createStatement.likeStr;
         }
         return new CreateStatement(this.tableName, createStr, fieldStr == null ? "----" : fieldStr, optionStr,
-                this.temporary == selectStatement.temporary && this.temporary, limitStr);
+                this.temporary == createStatement.temporary && this.temporary, likeStr,
+                this.selectStatement != null ? this.selectStatement.merge(createStatement.selectStatement) : createStatement.selectStatement
+        );
     }
 
     @Override

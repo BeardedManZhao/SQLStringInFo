@@ -22,7 +22,7 @@ public class CreateParser implements SQLParser<CreateStatement, CreateStatementB
     /**
      * create 表解析，其中第一个括号是表类型，第二个括号是表名，第三个括号是下一个解析词
      */
-    private final static Pattern TABLE_PATTERN = Pattern.compile("(?<=create) *?(temporary *?table|table) *([\\S]+) *?(?=(\\(|like))", Pattern.CASE_INSENSITIVE);
+    private final static Pattern TABLE_PATTERN = Pattern.compile("(?<=create)\\s*?(temporary\\s*?table|table)\\s*([\\S]+)\\s*?(?=(\\(|as|like))", Pattern.CASE_INSENSITIVE);
 
     /**
      * 字段解析，其中第0个组是字段数据，第1个括号是下一个解析词
@@ -38,6 +38,11 @@ public class CreateParser implements SQLParser<CreateStatement, CreateStatementB
      * like表解析，其中第0个组是被like的表名，第1个括号是下一个解析词
      */
     private final static Pattern LIKE_PATTERN = Pattern.compile("(?<=like)[\\s\\S]*(?=(;))", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * as 子查询语句解析，其中第0组是as的语句，第1个括号是子查询的语句，从select 到结尾的分号，下一个解析词为;
+     */
+    private final static Pattern AS_PATTERN = Pattern.compile("as\\s*?(select[\\s\\S]*)", Pattern.CASE_INSENSITIVE);
 
     /**
      * 获取到全局唯一的解析器对象，通过该函数，可以从管理者中获取到该解析器对象，如果管理者中不存在，该函数会在管理者中注册一个新组件。
@@ -131,6 +136,14 @@ public class CreateParser implements SQLParser<CreateStatement, CreateStatementB
                     }
                 }
                 throw new RuntimeException("无法解析sql语句：" + sql);
+            }
+        } else if (wordNum == CreateStatement.AS_WORD) {
+            Matcher matcher = AS_PATTERN.matcher(sql);
+            if (matcher.find(startIndex)) {
+                return parseSqlByWord(
+                        createStatementBuilder.setSelectStatement(SelectParser.getInstance().parseSql(matcher.group(1))),
+                        matcher.end(), sql, ";"
+                );
             }
         }
         throw new RuntimeException("错误的解析词：" + sqlWord);

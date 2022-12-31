@@ -42,7 +42,7 @@ public class SelectParser implements SQLParser<SelectStatement, SelectStatementB
     /**
      * 排序 子句解析，其中第一个括号为所有需要排序的字段，第二个括号为排序方式/下一个解析词，第三个括号为下一个解析词
      */
-    private final static Pattern ORDER_CLAUSE_PARSING = Pattern.compile("order *?by\\s*([\\s\\S]+?)(desc|asc)\\s*?(?=(limit|;))", Pattern.CASE_INSENSITIVE);
+    private final static Pattern ORDER_CLAUSE_PARSING = Pattern.compile("order *?by\\s*([\\s\\S]+?)( |asc|desc)\\s*?(?=(limit|;))", Pattern.CASE_INSENSITIVE);
 
     /**
      * 分页 子句解析，其中第一个括号为所有需要排序的字段，第二个括号为排序方式/下一个解析词，第三个括号为下一个解析词
@@ -126,6 +126,7 @@ public class SelectParser implements SQLParser<SelectStatement, SelectStatementB
                     SelectStatement subSelect = parseSqlByWord(null, 1, matcher1.group(), "select");
                     selectStatementBuilder
                             .addSubSelect(subSelect)
+                            .addTableName(",")
                             .addTableName(subSelect.getTableName());
                 }
             } else {
@@ -152,10 +153,11 @@ public class SelectParser implements SQLParser<SelectStatement, SelectStatementB
         } else if (wordNum == SelectStatement.ORDER_WORD) {
             Matcher matcher = ORDER_CLAUSE_PARSING.matcher(sql);
             if (matcher.find(startIndex)) {
+                String orderMode = matcher.group(2);
                 return parseSqlByWord(
                         selectStatementBuilder
                                 .setOrderStr(matcher.group(1))
-                                .setAsc(matcher.group(2).equalsIgnoreCase("asc"))
+                                .setAsc(" ".equals(orderMode) || "asc".equalsIgnoreCase(orderMode))
                         , matcher.end(), sql, matcher.group(3)
                 );
             } else {

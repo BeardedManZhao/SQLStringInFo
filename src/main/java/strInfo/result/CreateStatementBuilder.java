@@ -14,6 +14,7 @@ public class CreateStatementBuilder implements Builder<CreateStatement> {
     private String optionsStr;
     private boolean temporary;
     private String likeStr;
+    private SelectStatement selectStatement;
 
     /**
      * 设置SQL的整体语句，是sql语句的全部字符串对象
@@ -68,14 +69,19 @@ public class CreateStatementBuilder implements Builder<CreateStatement> {
         return this;
     }
 
+    public CreateStatementBuilder setSelectStatement(SelectStatement selectStatement) {
+        this.selectStatement = selectStatement;
+        return this;
+    }
+
     /**
      * @return 建造者类所构造出来的数据封装对象，当调用该方法的时候意味着建造完成，将会正式的确定出被构造产品的结果数据
      */
     @Override
     public CreateStatement create() {
         if (this.SQL == null) {
-            return new CreateStatement(tableName, createStr, fieldStr, optionsStr, temporary, likeStr);
+            return new CreateStatement(tableName, createStr, fieldStr, optionsStr, temporary, likeStr, selectStatement);
         }
-        return new CreateStatement(tableName, SQL, createStr, fieldStr, optionsStr, temporary, likeStr);
+        return new CreateStatement(tableName, SQL, createStr, fieldStr, optionsStr, temporary, likeStr, selectStatement);
     }
 }

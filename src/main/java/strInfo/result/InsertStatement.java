@@ -95,21 +95,22 @@ public class InsertStatement extends Statement {
     /**
      * 以当前类为中心，将其它sql语句类中的数据合并到当前类中，并返回当前类的新副本，不会影响当前类的源数据
      *
-     * @param selectStatement 其它的sql语句类，也是另一方的数据来源
+     * @param insertStatement 其它的sql语句类，也是另一方的数据来源
      * @return 一个以当前语句对象为中心，与其它类合并之后的新语句对象
      */
-    public InsertStatement merge(InsertStatement selectStatement) {
+    public InsertStatement merge(InsertStatement insertStatement) {
+        if (insertStatement == null) return this;
         String dataStr = null;
         String fieldStr = null;
-        if (this.dataStr == null && selectStatement.dataStr != null) {
-            dataStr = selectStatement.dataStr;
+        if (this.dataStr == null && insertStatement.dataStr != null) {
+            dataStr = insertStatement.dataStr;
         }
-        if (this.fieldStr == null && selectStatement.fieldStr != null) {
-            fieldStr = selectStatement.fieldStr;
+        if (this.fieldStr == null && insertStatement.fieldStr != null) {
+            fieldStr = insertStatement.fieldStr;
         }
         return new InsertStatement(
                 this.tableName,
-                this.Multiline == selectStatement.Multiline && this.Multiline,
+                this.Multiline == insertStatement.Multiline && this.Multiline,
                 fieldStr, dataStr
         );
     }
