@@ -4,6 +4,19 @@
 
 SQLStringInFo是一个专注于sql命令语句解析的sql命令解析库，在库中提供了有关SQL命令语法的解析器，通过该库，可以实现快速准确的SQL语句分析处理。
 
+- MAVEN依赖坐标
+
+  现在已经支持使用MAVEN将该解析库添加到您的项目中了，当然，您也可以使用gradle连接该maven坐标!
+
+```xml
+
+<dependency>
+    <groupId>io.github.BeardedManZhao</groupId>
+    <artifactId>SQLStringInFo</artifactId>
+    <version>1.0</version>
+</dependency>
+```
+
 ### 框架中的解析器
 
 解析器是针对SQL语句数据处理的实现，其中存储的有关SQL解析的具体逻辑，在库中，所有的解析器都实现了strInfo.parser.SQLParser接口，接口中有最基本的获取数据的函数，下面是有关库中当前所有解析器的信息。

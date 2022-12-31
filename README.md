@@ -5,6 +5,20 @@
 SQLStringInFo is an SQL command parsing library that focuses on parsing SQL command statements. The library provides a
 parser for SQL command syntax. Through this library, you can quickly and accurately analyze and process SQL statements.
 
+- MAVEN depends on coordinates
+
+  Now it is supported to add the parsing library to your project using MAVEN. Of course, you can also use gradle to
+  connect the maven coordinates!
+
+```xml
+
+<dependency>
+    <groupId>io.github.BeardedManZhao</groupId>
+    <artifactId>SQLStringInFo</artifactId>
+    <version>1.0</version>
+</dependency>
+```
+
 ### Parsers in the framework
 
 The parser is the implementation of SQL statement data processing. It stores specific logic about SQL parsing. In the
