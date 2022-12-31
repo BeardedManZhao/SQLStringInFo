@@ -1,4 +1,4 @@
-# SQLStringInFo
+# ![image](https://user-images.githubusercontent.com/113756063/210125879-995e2094-101c-4383-be74-8db99d0200bb.png) SQLStringInFo
 
 ## introduce
 
@@ -321,5 +321,5 @@ alter table zhao add index indexName (name, age1);
 
 <hr>
 
-- Switch to [中文文档]()
+- Switch to [中文文档](https://github.com/BeardedManZhao/SQLStringInFo/blob/core/README-Chinese.md)
 - date : 2022-12-31
