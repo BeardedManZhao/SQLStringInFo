@@ -31,12 +31,24 @@ public interface SQLParser<StatementType, StatementBuilderType extends Builder<?
 
     /**
      * 解析一个sql语句中的指定sql解析词相关的子sql语句
+     * <p>
+     * Parse the sub sql statements related to the specified sql parsing words in an sql statement
      *
-     * @param StatementBuilder 累计的sql语句结果的建造类
+     * @param StatementBuilder 累计的sql语句结果的建造类，用于结果数据对象的逐步构造。
+     *                         <p>
+     *                         The construction class of cumulative SQL statement results, which is used to gradually construct result data objects.
      * @param startIndex       解析词开始出现的索引位置
-     * @param sql              完整的sql语句
-     * @param sqlWord          需要被解析的sql解析词
-     * @return 解析之后的sql语句
+     *                         <p>
+     *                         Index position where the parsing word begins to appear
+     * @param sql              完整的sql语句，该语句就是需要被解析的SQL语句。
+     *                         <p>
+     *                         A complete SQL statement, which is the SQL statement to be parsed.
+     * @param sqlWord          需要被解析的sql解析词，利用SQL解析词确定下一层解析树需要解析的任务。
+     *                         <p>
+     *                         The SQL parsing words to be parsed are used to determine the tasks to be parsed in the next layer of the parse tree.
+     * @return 解析之后的sql语句结果对象
+     * <p>
+     * The result object of the parsed SQL statement.
      */
     StatementType parseSqlByWord(StatementBuilderType StatementBuilder, int startIndex, String sql, String sqlWord);
 }
