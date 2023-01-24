@@ -11,6 +11,8 @@ public interface Builder<Product> {
 
     /**
      * @return 建造者类所构造出来的数据封装对象，当调用该方法的时候意味着建造完成，将会正式的确定出被构造产品的结果数据
+     * <p>
+     * The data encapsulation object constructed by the constructor class means that the construction is completed when the method is called, and the result data of the constructed product will be formally determined
      */
     Product create();
 }

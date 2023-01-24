@@ -18,6 +18,7 @@ public class SelectStatement extends Statement {
     public final static int ORDER_WORD = getWordNum("order", hashNum);
     public final static int LIMIT_WORD = getWordNum("limit", hashNum);
 
+    private final boolean useAlias;
     private final ArrayList<SelectStatement> SubQueryList;
     private final String SQL;
     private final String selectStr;
@@ -28,7 +29,7 @@ public class SelectStatement extends Statement {
     private final String limitStr;
 
     protected SelectStatement(String tableName, String sql, String selectStr, String whereStr, String groupStr, String orderStr, boolean asc, String limitStr, ArrayList<SelectStatement> SubQueryList) {
-        super(tableName, COMMA_PATTERN.split(selectStr));
+        super(tableName.toLowerCase(), COMMA_PATTERN.split(selectStr));
         this.SQL = sql;
         this.selectStr = selectStr;
         this.whereStr = whereStr;
@@ -37,10 +38,11 @@ public class SelectStatement extends Statement {
         this.orderStr = orderStr;
         this.limitStr = limitStr;
         this.SubQueryList = SubQueryList;
+        this.useAlias = this.tableName.contains("as");
     }
 
     protected SelectStatement(String tableName, String selectStr, String whereStr, String groupStr, String orderStr, boolean asc, String limitStr, ArrayList<SelectStatement> SubQueryList) {
-        super(tableName, COMMA_PATTERN.split(selectStr));
+        super(tableName.toLowerCase(), COMMA_PATTERN.split(selectStr));
         this.selectStr = selectStr;
         this.whereStr = whereStr;
         this.groupStr = groupStr;
@@ -57,6 +59,7 @@ public class SelectStatement extends Statement {
         if (limitStr != null) stringBuilder.append(" limit ").append(limitStr);
         this.SQL = stringBuilder + ";";
         this.SubQueryList = SubQueryList;
+        this.useAlias = this.tableName.contains("as");
     }
 
     /**
@@ -70,6 +73,15 @@ public class SelectStatement extends Statement {
      */
     public static SelectStatementBuilder builder() {
         return new SelectStatementBuilder();
+    }
+
+    /**
+     * @return 如果在查询语句中使用到了别名，那么此处将返回true，如果没有使用到别名，此处将返回false
+     * <p>
+     * If the alias is used in the query statement, true will be returned here. If the alias is not used, false will be returned here
+     */
+    public boolean isUseAlias() {
+        return this.useAlias;
     }
 
     /**
@@ -117,6 +129,77 @@ public class SelectStatement extends Statement {
         if (backStr.length() != 0) {
             arrayList.add(backStr.toString());
         }
+        return arrayList.toArray(new String[0]);
+    }
+
+    /**
+     * 获取到本次查询涉及到的所有表别名组成的数组数据。
+     * <p>
+     * Get the array data composed of all table names involved in this query.
+     *
+     * @return 所有与本次查询有关的表的别名组成的字符串数组。
+     * <p>
+     * A string array composed of aliases of all tables related to this query.
+     */
+    public String[] getTablesByAlias() {
+        ArrayList<String> arrayList = new ArrayList<>();
+        StringBuilder tempWordName = new StringBuilder();
+        boolean isAs = false;
+        for (int i = 0, length = tableName.length(); i < length; i++) {
+            char c = tableName.charAt(i);
+            if (c != ' ' && c != ',') {
+                tempWordName.append(c);
+            } else {
+                if (isAs) {
+                    arrayList.add(tempWordName.toString());
+                    tempWordName.delete(0, tempWordName.length());
+                    isAs = false;
+                } else {
+                    String s = tempWordName.toString();
+                    if ("as".equalsIgnoreCase(s)) {
+                        // 发现下一个词是别名，在这里打上标记
+                        isAs = true;
+                    }
+                    tempWordName.delete(0, s.length());
+                }
+            }
+        }
+        if (isAs && tempWordName.length() != 0) {
+            arrayList.add(tempWordName.toString());
+        }
+        return arrayList.toArray(new String[0]);
+    }
+
+    /**
+     * 获取到本次查询涉及到的所有表真名组成的数组数据。
+     * <p>
+     * Get the array data composed of the real names of all tables involved in this query.
+     *
+     * @return 所有与本次查询有关的表的真名组成的字符串数组。
+     * <p>
+     * A string array composed of RealName of all tables related to this query.
+     */
+    public String[] getTablesByRealName() {
+        ArrayList<String> arrayList = new ArrayList<>();
+        String backWordName = "null";
+        StringBuilder tempWordName = new StringBuilder();
+        for (int i = 0, length = tableName.length(); i < length; i++) {
+            char c = tableName.charAt(i);
+            if (c != ' ' && c != ',') {
+                tempWordName.append(c);
+            } else {
+                String s = tempWordName.toString();
+                if ("as".equalsIgnoreCase(s)) {
+                    // 发现下一个词是别名，在这里添加上一个的表名
+                    arrayList.add(backWordName);
+                } else {
+                    // 如果不是就将当前词作为上一次词
+                    backWordName = s;
+                }
+                tempWordName.delete(0, s.length());
+            }
+        }
+
         return arrayList.toArray(new String[0]);
     }
 
@@ -206,6 +289,7 @@ public class SelectStatement extends Statement {
      * @return where子句的条件数组。
      */
     public String[] getWhereArray() {
+        if (this.whereStr == null) return new String[0];
         ArrayList<String> arrayList = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder();
         StringBuilder backStr = new StringBuilder();
@@ -219,6 +303,7 @@ public class SelectStatement extends Statement {
                 if ("or".equalsIgnoreCase(s) || "and".equalsIgnoreCase(s)) {
                     arrayList.add(backStr.toString());
                     arrayList.add(s);
+                    backStr.delete(0, backStr.length());
                 } else {
                     backStr.append(c).append(stringBuilder);
                 }
@@ -226,6 +311,12 @@ public class SelectStatement extends Statement {
             }
         }
         if (backStr.length() != 0) {
+            if (stringBuilder.length() != 0) {
+                String s = stringBuilder.toString();
+                if (!("or".equalsIgnoreCase(s) || "and".equalsIgnoreCase(s))) {
+                    backStr.append(s);
+                }
+            }
             arrayList.add(backStr.toString());
         }
         return arrayList.toArray(new String[0]);

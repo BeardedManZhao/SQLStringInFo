@@ -26,6 +26,7 @@ public abstract class Statement {
         return Math.abs(i - (i >> hashNum << hashNum));
     }
 
+
     /**
      * @return 获取到SQL字符串的原语句
      */

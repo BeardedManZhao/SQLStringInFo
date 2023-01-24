@@ -115,7 +115,7 @@ public class AlterParser implements SQLParser<AlterStatement, AlterStatementBuil
                         5, sql, mod
                 );
             }
-            throw new RuntimeException("无法解析sql语句：" + sql);
+            throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
         } else if (wordNum == AlterStatement.ADD_WORD) {
             Matcher matcher = ADD_PATTERN.matcher(sql);
             if (matcher.find(startIndex)) {
@@ -134,7 +134,7 @@ public class AlterParser implements SQLParser<AlterStatement, AlterStatementBuil
                                 matcher1.end(), sql, ";"
                         );
                     }
-                    throw new RuntimeException("无法解析sql语句：" + sql);
+                    throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
                 } else if (addWordNum == AlterStatement.UNIQUE_WORD || addWordNum == AlterStatement.PRIMARY_WORD) {
                     // 这种情况下代表添加的是约束，只需要取第二括号的内容
                     Matcher matcher1 = ADD_INFO_PATTERN.matcher(sql);
@@ -172,7 +172,7 @@ public class AlterParser implements SQLParser<AlterStatement, AlterStatementBuil
                         StatementBuilder.setRenameStr(matcher.group(1)), matcher.end(), sql, ";"
                 );
             }
-            throw new RuntimeException("无法解析sql语句：" + sql);
+            throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
         } else if (wordNum == AlterStatement.DROP_WORD) {
             Matcher matcher = DROP_PATTERN.matcher(sql);
             if (matcher.find(startIndex)) {
@@ -181,7 +181,7 @@ public class AlterParser implements SQLParser<AlterStatement, AlterStatementBuil
                         StatementBuilder.setDropStr(dropCol).setFieldStr(dropCol), matcher.end(), sql, ";"
                 );
             }
-            throw new RuntimeException("无法解析sql语句：" + sql);
+            throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
         } else if (wordNum == AlterStatement.CHANGE_WORD) {
             Matcher matcher = CHANGE_PATTERN.matcher(sql);
             if (matcher.find(startIndex)) {
@@ -189,7 +189,7 @@ public class AlterParser implements SQLParser<AlterStatement, AlterStatementBuil
                         StatementBuilder.setChangeStr(matcher.group(2)).setFieldStr(matcher.group(1)), matcher.end(), sql, ";"
                 );
             }
-            throw new RuntimeException("无法解析sql语句：" + sql);
+            throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
         } else {
             throw new RuntimeException("错误的解析词：" + sqlWord);
         }

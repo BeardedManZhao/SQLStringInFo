@@ -13,6 +13,7 @@ import strInfo.result.Builder;
  */
 public interface SQLParser<StatementType, StatementBuilderType extends Builder<?>> {
 
+    String ERROR = "\nThe parsing error occurred at: ";
 
     /**
      * @return 获取到该解析器的名称，该名称还用于该组件在管理者中的注册，因此您也可以通过管理者获取到该组件对象

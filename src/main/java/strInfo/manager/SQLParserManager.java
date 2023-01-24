@@ -14,7 +14,7 @@ import java.util.HashMap;
  */
 public final class SQLParserManager {
 
-    private final static float VERSION = 1.0f;
+    public final static float VERSION = 1.1f;
 
     private final static HashMap<String, SQLParser<?, ?>> hashMap = new HashMap<>(8);
 

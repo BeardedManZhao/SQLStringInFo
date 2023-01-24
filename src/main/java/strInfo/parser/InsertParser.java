@@ -86,7 +86,7 @@ public class InsertParser implements SQLParser<InsertStatement, InsertStatementB
                         matcher.end(), sql, ";"
                 );
             } else {
-                throw new RuntimeException("无法解析sql语句：" + sql);
+                throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
             }
         }
         throw new RuntimeException("错误的解析词：" + sqlWord);

@@ -22,7 +22,7 @@ public class SelectParser implements SQLParser<SelectStatement, SelectStatementB
     /**
      * select 字段与表解析 第一个括号为所有字段，第二个括号为所有表，第三个括号为下一个解析词
      */
-    private final static Pattern FIELD_AND_TABLE_RESOLUTION = Pattern.compile("select\\s*([()a-zA-Z, 0-9+\\-*/%\\r\\n]+?)\\s*?from\\s*?([a-z_A-Z0-9\\s]*?)(?=(\\(|where|group|order|limit|;))", Pattern.CASE_INSENSITIVE);
+    private final static Pattern FIELD_AND_TABLE_RESOLUTION = Pattern.compile("select\\s*([()a-zA-Z_., 0-9+\\-*/%\\r\\n]+?)\\s*?from\\s*?([a-z_A-Z0-9\\s,]*?)(?=(\\(|where|group|order|limit|;))", Pattern.CASE_INSENSITIVE);
 
     /**
      * 对所有的子查询语句进行替换的静态正则
@@ -105,11 +105,12 @@ public class SelectParser implements SQLParser<SelectStatement, SelectStatementB
                 // 所有字段与表
                 String fields = matcher.group(1);
                 String tableName = matcher.group(2);
+
                 // 下一个解析词
                 String word = matcher.group(3);
                 return parseSqlByWord(SelectStatement.builder().setTableName(tableName).setSQL(sql).setSelectStr(fields), matcher.end(), sql, word);
             } else {
-                throw new RuntimeException("无法解析sql语句：" + sql);
+                throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
             }
         } else if ("(".equals(sqlWord)) {
             // 这种情况代表当前要解析的是子查询了
@@ -130,7 +131,7 @@ public class SelectParser implements SQLParser<SelectStatement, SelectStatementB
                             .addTableName(subSelect.getTableName());
                 }
             } else {
-                throw new RuntimeException("无法解析子查询sql语句：" + sql);
+                throw new RuntimeException("无法解析子查询sql语句：" + sql + ERROR + sqlWord);
             }
             // 继续解析之前的句子，这里使用的是子查询语句删除
             return parseSqlByWord(
@@ -141,14 +142,14 @@ public class SelectParser implements SQLParser<SelectStatement, SelectStatementB
             if (matcher.find(startIndex)) {
                 return parseSqlByWord(selectStatementBuilder.setWhereStr(matcher.group(1)), matcher.end(), sql, matcher.group(2));
             } else {
-                throw new RuntimeException("无法解析sql语句：" + sql);
+                throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
             }
         } else if (wordNum == SelectStatement.GROUP_WORD) {
             Matcher matcher = GROUP_CLAUSE_PARSING.matcher(sql);
             if (matcher.find(startIndex)) {
                 return parseSqlByWord(selectStatementBuilder.setGroupStr(matcher.group(1)), matcher.end(), sql, matcher.group(2));
             } else {
-                throw new RuntimeException("无法解析sql语句：" + sql);
+                throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
             }
         } else if (wordNum == SelectStatement.ORDER_WORD) {
             Matcher matcher = ORDER_CLAUSE_PARSING.matcher(sql);
@@ -161,14 +162,14 @@ public class SelectParser implements SQLParser<SelectStatement, SelectStatementB
                         , matcher.end(), sql, matcher.group(3)
                 );
             } else {
-                throw new RuntimeException("无法解析sql语句：" + sql);
+                throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
             }
         } else if (wordNum == SelectStatement.LIMIT_WORD) {
             Matcher matcher = LIMIT_CLAUSE_PARSING.matcher(sql);
             if (matcher.find(startIndex)) {
                 return parseSqlByWord(selectStatementBuilder.setLimitStr(matcher.group(1)), matcher.end(), sql, matcher.group(2));
             } else {
-                throw new RuntimeException("无法解析sql语句：" + sql);
+                throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
             }
         } else {
             throw new RuntimeException("错误的解析词：" + sqlWord);

@@ -13,7 +13,7 @@ SQLStringInFo是一个专注于sql命令语句解析的sql命令解析库，在�
 <dependency>
     <groupId>io.github.BeardedManZhao</groupId>
     <artifactId>SQLStringInFo</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
 </dependency>
 ```
 

@@ -109,21 +109,21 @@ public class CreateParser implements SQLParser<CreateStatement, CreateStatementB
                         matcher.end(), sql, matcher.group(3)
                 );
             } else {
-                throw new RuntimeException("无法解析sql语句：" + sql);
+                throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
             }
         } else if (wordNum == CreateStatement.LEFT_BRACKET_WORD) {
             Matcher matcher = FIELD_PATTERN.matcher(sql);
             if (matcher.find(startIndex)) {
                 return parseSqlByWord(createStatementBuilder.setFieldStr(matcher.group(0)), matcher.end(), sql, ")");
             } else {
-                throw new RuntimeException("无法解析sql语句：" + sql);
+                throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
             }
         } else if (wordNum == CreateStatement.LIKE_WORD) {
             Matcher matcher = LIKE_PATTERN.matcher(sql);
             if (matcher.find(startIndex)) {
                 return parseSqlByWord(createStatementBuilder.setLikeStr(matcher.group(0)), matcher.end(), sql, matcher.group(1));
             } else {
-                throw new RuntimeException("无法解析sql语句：" + sql);
+                throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
             }
         } else if (wordNum == CreateStatement.RIGHT_BRACKET_WORD) {
             if (startIndex < sql.length()) {
@@ -135,7 +135,7 @@ public class CreateParser implements SQLParser<CreateStatement, CreateStatementB
                         return parseSqlByWord(createStatementBuilder.setOptionsStr(matcher.group(0)), matcher.end(), sql, matcher.group(1));
                     }
                 }
-                throw new RuntimeException("无法解析sql语句：" + sql);
+                throw new RuntimeException("无法解析sql语句：" + sql + ERROR + sqlWord);
             }
         } else if (wordNum == CreateStatement.AS_WORD) {
             Matcher matcher = AS_PATTERN.matcher(sql);
